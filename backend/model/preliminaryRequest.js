@@ -19,12 +19,12 @@ const preliminaryRequest = db.define('PreliminaryRequest', {
         allowNull: false,
     },
     status: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('pending', 'approved', 'rejected'),
         allowNull: false,
     },
 	justification: {
 		type: Sequelize.STRING,
-		allowNull: false,
+		allowNull: true, // pending and accepted requests do not need justification
 	},
     title: {
         type: Sequelize.STRING,
@@ -48,40 +48,41 @@ export async function rejectPreliminaryRequest(id, justification) {
 }
 
 export async function acceptPreliminaryRequest(id) {
-	const request = await getPreliminaryRequestById(id);
+	const transaction = await db.transaction();
 
-	if (request.status !== 'pending') {
-		throw new Error('Cannot accept a non-pending preliminary request');
+	try {
+		const request = await getPreliminaryRequestById(id, { transaction });
+
+		if (request.status !== 'pending') {
+			throw new Error('Cannot accept a non-pending request');
+		}
+
+		const studentUser = await getUserById(student, request.studentId, { transaction });
+		const registrationSession = await getRegistrationSessionById(request.sessionId, { transaction });
+
+		if (studentUser.assignedProfessorId) {
+			throw new Error('Student already has an assigned professor.');
+		}
+
+		await verifyAvailableSlots(registrationSession.sessionId);
+
+		registrationSession.currentNumberOfStudents += 1;
+		await registrationSession.save({ transaction });
+
+		request.status = 'approved';
+		await request.save({ transaction });
+
+		studentUser.assignedProfessorId = registrationSession.professorId;
+		await studentUser.save({ transaction });
+
+		await transaction.commit();
+		return request;
+	} catch (error) {
+		await transaction.rollback();
+		throw error;
 	}
-
-	const user = await getUserById(student, request.studentId);
-	const session = await getRegistrationSessionById(request.sessionId);
-
-	// student already accepted elsewhere
-	if (user.assignedProfessorId) {
-		throw new Error('Student already has an assigned professor');
-	}
-
-	// check available slots
-	const hasSlots = await verifyAvailableSlots(session.sessionId);
-	if (!hasSlots) {
-		throw new Error('No available slots in this session');
-	}
-
-	// update session
-	session.currentNumberOfStudents += 1;
-	await session.save();
-
-	// update request
-	request.status = 'accepted';
-	await request.save();
-
-	// assign professor
-	user.assignedProfessorId = session.professorId;
-	await user.save();
-
-	return request;
 }
+
 
 export async function getPreliminaryRequestsBySessionId(id) {
 	return preliminaryRequest.findAll({

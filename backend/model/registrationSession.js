@@ -23,6 +23,7 @@ const registrationSession = db.define('RegistrationSession', {
     currentStudents: {
         type: Sequelize.INTEGER,
         allowNull: false,
+        defaultValue: 0,
     },
     maxNumberOfStudents: {
         type: Sequelize.INTEGER,
@@ -96,7 +97,7 @@ export async function getAllRegSessionsByProfessorId(id){
         },
     });
 
-    if(session === 0 ){
+    if(session.length === 0 ){
         throw new Error('Professor does not have any sessions');
     }
     else{
@@ -105,7 +106,11 @@ export async function getAllRegSessionsByProfessorId(id){
 }
 
 export async function verifyAvailableSlots(sessionId){
-    let session = await getRegistrationSessionById(sessionId);
+    const session = await registrationSession.findByPk(sessionId);
+
+    if(!session){
+        throw new Error('Session does not exist!');
+    }
     if(session.dataValues.currentStudents >= session.dataValues.maxNumberOfStudents){
         throw new Error('Session is full.');
     }
@@ -125,7 +130,7 @@ export async function getAllActiveRegSessions(){
         },
         include: [{
             model: professor,
-            attributes: ['name'],
+            attributes: ['firstName', 'lastName'],
         }],
     });
 
