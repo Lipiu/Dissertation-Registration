@@ -11,19 +11,22 @@ async function initDatabase(){
     student.belongsTo(professor, {foreignKey: 'assignedProfessorId'});
 
     //student to mainRequest - one to one relationship
-    student.Many(mainRequest, {foreignKey: 'studentId'});
+    student.hasOne(mainRequest, {foreignKey: 'studentId'});
     mainRequest.belongsTo(student, {foreignKey: 'studentId'});
 
     //professor to mainRequest - many to one relationship
     professor.hasMany(mainRequest, {foreignKey: 'professorId'});
     mainRequest.belongsTo(professor, {foreignKey: 'professorId'});
 
+    //professor to registrationSession - many to one relationship
     professor.hasMany(registrationSession, {foreignKey: 'professorId'});
     registrationSession.belongsTo(professor, {foreignKey: 'professorId'});
 
+    //student to preliminaryRequest - many to one relationship
     student.hasMany(preliminaryRequest, {foreignKey: 'studentId'});
     preliminaryRequest.belongsTo(student, {foreignKey: 'studentId'});
 
+    //registrationSession to preliminaryRequest - many to one relationship
     registrationSession.hasMany(preliminaryRequest, {foreignKey: 'sessionId'});
     preliminaryRequest.belongsTo(registrationSession, {foreignKey: 'sessionId'});
 
