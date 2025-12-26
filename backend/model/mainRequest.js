@@ -1,6 +1,5 @@
 import { Sequelize } from 'sequelize';
 import db from '../config/database.js';
-import user, { getUserById } from './user.js';
 import professor from './professor.js';
 import student from './student.js';
 
@@ -134,7 +133,7 @@ export async function createMainRequest(request){
     }
 
     //check duplicate sessions
-    let duplicateSession = await mainRequest.request({
+    let duplicateSession = await mainRequest.findOne({
         where: {
             studentId: studentId,
             professorId: professorId,

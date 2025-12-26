@@ -1,5 +1,7 @@
 export async function createUser(model, user){
-    const duplicateUser = await model.findOne({ email: user.email });
+    const duplicateUser = await model.findOne({ 
+        where: { email: user.email } 
+    });
     if(duplicateUser){
         throw new Error('User with this email already exists');
     }
@@ -18,7 +20,9 @@ export async function getUserById(model, id){
 }
 
 export async function getUserByEmail(model, email){
-    const user = await model.findOne({ where: { email } });
+    const user = await model.findOne({ 
+        where: { email } 
+    });
     if(!user){
         throw new Error('User email not found');
     }
@@ -28,11 +32,6 @@ export async function getUserByEmail(model, email){
 export async function getUserByEmailAndCheckPassword(model, email, password){
     try{
         const user = await getUserByEmail(model, email);
-        const isValidPassword = await user.validatePassword(password);
-        if(!isValidPassword){
-            throw new Error('Invalid password');
-        }
-        return user;
     }
     catch(e){
         throw e;

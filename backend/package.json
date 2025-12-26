@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "sequelize": "^6.37.7"
+    "express": "^5.2.1",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7"
   }
 }

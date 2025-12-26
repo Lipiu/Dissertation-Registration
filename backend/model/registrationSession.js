@@ -16,7 +16,7 @@ const registrationSession = db.define('RegistrationSession', {
         type: Sequelize.DATE,
         allowNull: false,
     },
-    finishTime: {
+    endTime: {
         type: Sequelize.DATE,
         allowNull: false,
     },
@@ -62,3 +62,75 @@ export async function getRegistrationSessionByProfessorId(id){
     return session;
 }
 
+export async function createRegistrationSession(session){
+    const { professorId, startTime, endTime, maxNumberOfStudents } = session;
+    const currentStudents = 0;
+
+    const duplicateSession = await registrationSession.findOne({
+        where: {
+            professorId : professorId,
+            startTime : {
+                [Sequelize.Op.lt] : new Date(endTime),
+            },
+            endTime : {
+                [Sequelize.Op.gt] : new Date(startTime),
+            },
+        },
+    });
+    
+    if(duplicateSession){
+        throw new Error('A registration session already exists');
+    }
+    try{
+        return await registrationSession.create({ professorId, startTime, endTime, maxNumberOfStudents });
+    }
+    catch(e){
+        throw e;
+    }
+}
+
+export async function getAllRegSessionsByProfessorId(id){
+    const session = await registrationSession.findAll({
+        where: {
+            professorId: id,
+        },
+    });
+
+    if(session === 0 ){
+        throw new Error('Professor does not have any sessions');
+    }
+    else{
+        return session;
+    }
+}
+
+export async function verifyAvailableSlots(sessionId){
+    let session = await getRegistrationSessionById(sessionId);
+    if(session.dataValues.currentStudents >= session.dataValues.maxNumberOfStudents){
+        throw new Error('Session is full.');
+    }
+    return true;
+}
+
+export async function getAllActiveRegSessions(){
+    const today = new Date();
+    const activeSessions = await registrationSession.findAll({
+        where: {
+            startTime: {
+                [Sequelize.Op.lte]: today,
+            },
+            endTime:{
+                [Sequelize.Op.gte]: today,
+            },
+        },
+        include: [{
+            model: professor,
+            attributes: ['name'],
+        }],
+    });
+
+    if(activeSessions === 0){
+        throw new Error('No active registration sessions found!');
+    }
+    return activeSessions;
+}
