@@ -20,7 +20,7 @@ const registrationSession = db.define('RegistrationSession', {
         type: Sequelize.DATE,
         allowNull: false,
     },
-    currentNumberOfStudents: {
+    currentStudents: {
         type: Sequelize.INTEGER,
         allowNull: false,
     },

@@ -11,7 +11,7 @@ async function initDatabase(){
     student.belongsTo(professor, {foreignKey: 'assignedProfessorId'});
 
     //student to mainRequest - one to one relationship
-    student.hasOne(mainRequest, {foreignKey: 'studentId'});
+    student.Many(mainRequest, {foreignKey: 'studentId'});
     mainRequest.belongsTo(student, {foreignKey: 'studentId'});
 
     //professor to mainRequest - many to one relationship

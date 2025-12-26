@@ -2,6 +2,7 @@ import { Sequelize } from 'sequelize';
 import db from '../config/database.js';
 import professor from './professor.js';
 import student from './student.js';
+import { getUserById } from './user.js';
 
 const mainRequest = db.define('MainRequest', {
     mainRequestId: {
@@ -15,7 +16,7 @@ const mainRequest = db.define('MainRequest', {
     },
     professorFilePath: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     status: {
         type: Sequelize.ENUM('pending', 'approved', 'rejected'),
@@ -23,6 +24,10 @@ const mainRequest = db.define('MainRequest', {
         defaultValue: 'pending',
     },
     studentId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+    },
+    sessionId: {
         type: Sequelize.INTEGER,
         allowNull: false,
     },
@@ -43,49 +48,47 @@ export async function getMainRequestById(id){
 }
 
 export async function getMainRequestByStudentId(id){
-    let request = await mainRequest.findOne({
+    let request = await mainRequest.findAll({
         where: { 
             studentId: id, 
         },
     });
-    if(!request){
+    if(request.length === 0){
         throw new Error('MainRequest not found for the given studentId');
     }
     return request;
 }
 
 export async function getMainRequestByProfessorId(id){
-    let request = await mainRequest.findOne({
+    let request = await mainRequest.findAll({
         where: {
             professorId: id,
         },
     });
-    if(!request){
+    if(request.length === 0){
         throw new Error('MainRequest not found for the given professorId');
     }
     return request;
 }
 
 export async function acceptMainRequest(id){
-    try{
-        let request = await getMainRequestById(id);
-        request.status = 'approved';
-        return await request.save();
+    const request = await getMainRequestById(id);
+
+    if(request.status !== 'pending'){
+        throw new Error('Only pending requests can be approved!');
     }
-    catch(e){
-        throw e;
-    }
+    request.status = 'approved';
+    return request.save();
 }
 
 export async function rejectMainRequest(id){
-    try{
-        let request = await getMainRequestById(id);
-        request.status = 'rejected';
-        return await request.save();
+    const request = await getMainRequestById(id);
+
+    if(request.status !== 'pending'){
+        throw new Error('Only pending requests can be rejected!');
     }
-    catch(e){
-        throw e;
-    }
+    request.status = 'rejected';
+    return request.save();
 }
 
 export async function updateMainRequestProfessorFilePath({professorFilePath, id}){
@@ -110,6 +113,7 @@ export async function updateMainRequestStudentFilePath({studentFilePath, id}){
             throw new Error('MainRequest not found');
         }
         request.studentFilePath = studentFilePath;
+        request.status = 'pending';
         await request.save();
 
         return request;
@@ -120,7 +124,7 @@ export async function updateMainRequestStudentFilePath({studentFilePath, id}){
 }
 
 export async function createMainRequest(request){
-    const { studentFilePath, studentId, professorId } = request;
+    const { studentFilePath, studentId, professorId, sessionId } = request;
 
     let status = 'pending';
 
@@ -137,10 +141,11 @@ export async function createMainRequest(request){
         where: {
             studentId: studentId,
             professorId: professorId,
+            sessionId: sessionId,
         },
     });
     if(duplicateSession){
         throw new Error('A session for this user already exists!');
     }
-    return await mainRequest.create({ studentFilePath, studentId, professorId, status });
+    return await mainRequest.create({ studentFilePath, studentId, professorId, sessionId, status });
 }

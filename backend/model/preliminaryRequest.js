@@ -22,6 +22,10 @@ const preliminaryRequest = db.define('PreliminaryRequest', {
         type: Sequelize.STRING,
         allowNull: false,
     },
+	justification: {
+		type: Sequelize.STRING,
+		allowNull: false,
+	},
     title: {
         type: Sequelize.STRING,
         allowNull: false,
