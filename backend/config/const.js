@@ -1,0 +1,4 @@
+const JWT_KEY = '1830eef426219c64ed0de6837a9c4fba53e0850f19e2237d043079144b76e5b4445f919a653cfdc8cdeeffc533bb80b5';
+const PORT = 8888;
+
+export {JWT_KEY, PORT};
