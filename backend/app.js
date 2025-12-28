@@ -1,27 +1,47 @@
+import cors from 'cors';
 import express from 'express';
+import { PORT } from './config/const.js';
 import initDatabase from './config/initdb.js';
 import accountRoutes from './routes/accountRoutes.js';
-import { PORT } from './config/const.js';
 
 const app = express();
 
-// middleware
+/* =======================
+   Middleware
+======================= */
 app.use(express.json());
+app.use(
+	express.urlencoded({
+		extended: true,
+	})
+);
 
-// init database
+app.use(
+	cors({
+		origin: '*',
+	})
+);
+
+/* =======================
+   Routes
+======================= */
+app.use('/api', accountRoutes);
+
+/* =======================
+   Init DB
+======================= */
 (async () => {
 	try {
 		await initDatabase();
 		console.log('Database initialized');
-	} catch (error) {
-		console.error('Database initialization failed:', error);
+	} catch (err) {
+		console.error('Database init failed:', err);
 	}
 })();
 
-// routes testing
-app.use('/account', accountRoutes);
-
-// start server
+/* =======================
+   Start server
+======================= */
 app.listen(PORT, () => {
-	console.log(`Server running at http://localhost:${PORT}`);
+	console.log(`Backend running at http://localhost:${PORT}`);
 });

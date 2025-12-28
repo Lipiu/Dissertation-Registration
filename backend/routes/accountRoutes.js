@@ -24,6 +24,7 @@ function generateToken(user, userModel){
 }
 
 async function registerHandler(req, res, userModel){
+    const  body = req.body || {};
     let { name, email, password, repeatedPassword } = req.body;
 
     if(!name || !email || !password || !repeatedPassword){
