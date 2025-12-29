@@ -6,9 +6,6 @@ import accountRoutes from './routes/accountRoutes.js';
 
 const app = express();
 
-/* =======================
-   Middleware
-======================= */
 app.use(express.json());
 app.use(
 	express.urlencoded({
@@ -22,14 +19,8 @@ app.use(
 	})
 );
 
-/* =======================
-   Routes
-======================= */
 app.use('/api', accountRoutes);
 
-/* =======================
-   Init DB
-======================= */
 (async () => {
 	try {
 		await initDatabase();
@@ -39,9 +30,10 @@ app.use('/api', accountRoutes);
 	}
 })();
 
-/* =======================
-   Start server
-======================= */
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
 	console.log(`Backend running at http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+	console.error('Server failed to start:', err.message);
 });
