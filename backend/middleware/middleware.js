@@ -1,5 +1,5 @@
 import jwt, { decode } from 'jsonwebtoken';
-import { JWT_KEY } from '../config/const';
+import { JWT_KEY } from '../config/const.js';
 
 export function verifyToken(req, res, next){
     const authHeader = req.headers.authorization;

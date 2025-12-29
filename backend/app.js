@@ -3,7 +3,7 @@ import express from 'express';
 import { PORT } from './config/const.js';
 import initDatabase from './config/initdb.js';
 import accountRoutes from './routes/accountRoutes.js';
-
+import mainRequestRoutes from './routes/mainRequestRoutes.js';
 const app = express();
 
 app.use(express.json());
@@ -20,6 +20,7 @@ app.use(
 );
 
 app.use('/api', accountRoutes);
+app.use('/api', mainRequestRoutes);
 
 (async () => {
 	try {
